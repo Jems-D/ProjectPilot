@@ -3,14 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using backend.Class;
-using backend.DTO;
 
 namespace backend.Interfaces
 {
-    public interface IProjectRepository
+    public interface IProjectTasksRepository
     {
-        Task CreateProject(Project newProj);
-        Task<Guid?> FindProjectById(Guid id);
+        Task CreateProjectTask(ProjectTasks projectTasks);
         Task SaveChangesAsync();
     }
 }

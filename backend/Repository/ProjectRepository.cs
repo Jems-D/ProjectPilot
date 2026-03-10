@@ -7,6 +7,7 @@ using backend.DBContext;
 using backend.DTO;
 using backend.Interfaces;
 using backend.Mappers;
+using Microsoft.EntityFrameworkCore;
 
 namespace backend.Repository
 {
@@ -22,6 +23,16 @@ namespace backend.Repository
         public async Task CreateProject(Project newProj)
         {
             await _context.projects.AddAsync(newProj);
+        }
+
+        public async Task<Guid?> FindProjectById(Guid id)
+        {
+            var projId = await _context
+                .projects.Where(p => p.ProjectId == id)
+                .Select(s => s.ProjectId)
+                .FirstOrDefaultAsync();
+
+            return projId;
         }
 
         public async Task SaveChangesAsync()

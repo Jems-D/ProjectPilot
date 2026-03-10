@@ -22,9 +22,16 @@ namespace backend.Class
 
         [Column("ProjectTaskDescription")]
         public string? ProjectTaskDescription { get; set; } = string.Empty;
+
+        [Column("ProjectTaskName")]
+        public string? ProjectTaskName { get; set; } = string.Empty;
         public Guid ProjectId { get; set; }
+        public int StatusId { get; set; } = 0;
 
         [ForeignKey(nameof(ProjectId))]
         public Project Project { get; set; }
+
+        [ForeignKey(nameof(StatusId))]
+        public TaskOrProjectStatus TaskOrProjectStatus { get; set; }
     }
 }

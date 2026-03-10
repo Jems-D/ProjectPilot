@@ -1,0 +1,11 @@
+backend/bin/Debug/net9.0/appsettings.json
+backend/bin/Debug/
+backend/bin/
+backend/obj/
+backend/appsettings.json
+bin/
+obj/
+*.user
+*.suo
+.vs/
+frontend/.env
