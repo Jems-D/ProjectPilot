@@ -5,9 +5,11 @@ using backend.Interfaces;
 using backend.Repository;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,7 +19,6 @@ var allowedOrigins = "_myAllowOrigins";
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 //builder.Services.AddOpenApi();
 builder.Services.AddControllers();
-builder.Services.AddAuthorization();
 builder.Services.AddEndpointsApiExplorer();
 
 //swagger
@@ -41,24 +42,15 @@ builder.Services.AddSwaggerGen(options =>
     );
 
     options.AddSecurityDefinition(
-        "google_oauth",
+        "Beaer",
         new OpenApiSecurityScheme
         {
-            Type = SecuritySchemeType.OAuth2,
-            Flows = new OpenApiOAuthFlows
-            {
-                AuthorizationCode = new OpenApiOAuthFlow
-                {
-                    AuthorizationUrl = new Uri("https://accounts.google.com/o/oauth2/v2/auth"),
-                    TokenUrl = new Uri("https://oauth2.googleapis.com/token"),
-                    Scopes = new Dictionary<string, string>
-                    {
-                        { "openid", "OpenId" },
-                        { "email", "User Email" },
-                        { "profile", "User Profile" },
-                    },
-                },
-            },
+            Name = "Authorization",
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT",
+            In = ParameterLocation.Header,
+            Description = "Enter: Beare {your token}",
         }
     );
 
@@ -71,10 +63,10 @@ builder.Services.AddSwaggerGen(options =>
                     Reference = new OpenApiReference
                     {
                         Type = ReferenceType.SecurityScheme,
-                        Id = "google_oauth",
+                        Id = "Bearer",
                     },
                 },
-                new[] { "openid", "email", "profile" }
+                new string[] { }
             },
         }
     );
@@ -106,18 +98,29 @@ builder.Services.AddMediatR(configuration =>
 
 //for Oauth
 builder
-    .Services.AddAuthentication(options =>
+    .Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
     {
-        options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
-    })
-    .AddCookie()
-    .AddGoogle(googleOptions =>
-    {
-        Console.WriteLine(builder.Configuration["Authentication:Google:ClientId"]);
-        googleOptions.ClientId = builder.Configuration["Authentication:Google:ClientId"]!;
-        googleOptions.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"]!;
+        options.Authority = "https://accounts.google.com";
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuers = new[] { "https://accounts.google.com", "accounts.google.com" },
+            ValidAudience = builder.Configuration["Authentication:Google:ClientId"],
+            ValidateAudience = true,
+            ValidateLifetime = true,
+        };
+        options.Events = new JwtBearerEvents
+        {
+            OnAuthenticationFailed = context =>
+            {
+                Console.WriteLine(context.Exception.ToString());
+                return Task.CompletedTask;
+            },
+        };
     });
+
+builder.Services.AddAuthorization();
 
 //for DI
 builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
@@ -137,11 +140,7 @@ if (app.Environment.IsDevelopment())
     {
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
         //options.RoutePrefix = string.Empty;
-
-        options.OAuthClientId(builder.Configuration["Authentication:Google:ClientId"]);
-        options.OAuthClientSecret(builder.Configuration["Authentication:Google:ClientSecret"]);
-        options.OAuthUsePkce();
-        options.OAuth2RedirectUrl("https://localhost:7204/swagger/oauth2-redirect.html");
+        //options.OAuth2RedirectUrl("https://localhost:7204/swagger/oauth2-redirect.html");
     });
 }
 app.UseHttpsRedirection();

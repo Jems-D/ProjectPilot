@@ -13,7 +13,7 @@ namespace backend.Controllers
     public class TestController : ControllerBase
     {
         [HttpGet]
-        [AllowAnonymous]
+        [Authorize]
         public IActionResult Get()
         {
             return Ok("Worked");
