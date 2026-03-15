@@ -15,5 +15,6 @@ namespace backend.DBContext
         public DbSet<Project> projects { get; set; }
         public DbSet<ProjectTasks> projectTasks { get; set; }
         public DbSet<TaskOrProjectStatus> taskOrProjectStatuses { get; set; }
+        public DbSet<UserAccount> userAccounts { get; set; }
     }
 }

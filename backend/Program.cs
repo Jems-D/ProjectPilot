@@ -42,7 +42,7 @@ builder.Services.AddSwaggerGen(options =>
     );
 
     options.AddSecurityDefinition(
-        "Beaer",
+        "Bearer",
         new OpenApiSecurityScheme
         {
             Name = "Authorization",
@@ -50,7 +50,7 @@ builder.Services.AddSwaggerGen(options =>
             Scheme = "bearer",
             BearerFormat = "JWT",
             In = ParameterLocation.Header,
-            Description = "Enter: Beare {your token}",
+            Description = "Enter: Bearer {your token}",
         }
     );
 
@@ -102,6 +102,7 @@ builder
     .AddJwtBearer(options =>
     {
         options.Authority = "https://accounts.google.com";
+        options.MetadataAddress = "https://accounts.google.com/.well-known/openid-configuration";
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -125,6 +126,7 @@ builder.Services.AddAuthorization();
 //for DI
 builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
 builder.Services.AddScoped<IProjectTasksRepository, ProjectTaskRepository>();
+builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 
 var app = builder.Build();
 
@@ -139,7 +141,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(options =>
     {
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
-        //options.RoutePrefix = string.Empty;
+        options.RoutePrefix = string.Empty;
         //options.OAuth2RedirectUrl("https://localhost:7204/swagger/oauth2-redirect.html");
     });
 }
